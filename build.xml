@@ -48,7 +48,7 @@
         <jar jarfile="${basedir}/centipede_play.jar">
             <manifest>
                 <attribute name="Main-Class"
-                    value="com.brackeen.javagamebook.tilegame.GameManager"/>
+                    value="Game"/>
             </manifest>
 
             <fileset dir="${destdir}" includes="**/*.class"/>
