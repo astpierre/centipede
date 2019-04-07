@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+
+<!-- ===================================================================== -->
+<!-- Centipede game in Java                                                -->
+<!-- Ant build file                                                        -->
+<!-- ===================================================================== -->
+
+<project name="centipede" default="build" basedir=".">
+
+    <property name="srcdir" value="src"/>
+    <property name="destdir" value="build"/>
+    <property name="docdir" value="doc"/>
+
+    <!-- Allow user to override properties without editing this file -->
+    <property file="${user.home}/.ant.properties" />
+
+
+    <!-- ================================================================= -->
+    <!-- Compile                                                           -->
+    <!-- ================================================================= -->
+    <target name="compile" description="Compile source code in src directory">
+
+        <mkdir dir="${destdir}"/>
+
+        <javac srcdir="${srcdir}"
+               destdir="${destdir}"
+               debug="on" >
+
+            <include name="**/*.java"/>
+        </javac>
+
+    </target>
+
+
+    <!-- ================================================================= -->
+    <!-- Clean                                                             -->
+    <!-- ================================================================= -->
+    <target name="clean" description="Deletes the build directory">
+        <delete dir="${destdir}" failonerror="false" />
+    </target>
+
+
+    <!-- =================================================================== -->
+    <!-- Build                                                               -->
+    <!-- =================================================================== -->
+    <target name="build" depends="clean, compile" description="Compiles and creates the Jar file">
+
+        <jar jarfile="${basedir}/centipede_play.jar">
+            <manifest>
+                <attribute name="Main-Class"
+                    value="com.brackeen.javagamebook.tilegame.GameManager"/>
+            </manifest>
+
+            <fileset dir="${destdir}" includes="**/*.class"/>
+        </jar>
+
+    </target>
+
+
+    <!-- =================================================================== -->
+    <!-- Javadoc                                                             -->
+    <!-- =================================================================== -->
+    <target name="javadoc" description="Creates API documentation (JavaDocs) for this game">
+
+        <delete dir="${docdir}" failonerror="false"/>
+        <mkdir dir="${docdir}"/>
+
+        <javadoc
+            destdir="${docdir}"
+            access="private"
+            author="true"
+            version="true"
+            use="true">
+
+            <fileset dir="${srcdir}">
+                <include name="*.java"/>
+            </fileset>
+
+            <link href="http://java.sun.com/j2se/1.4.2/docs/api/"/>
+
+        </javadoc>
+
+    </target>
+
+</project>
