@@ -19,13 +19,9 @@ public class Board extends JPanel implements Runnable, Constraints {
     private Dimension d;
     private Player player;
     private int game_score = 0;
-
     private boolean ingame = true;
-
     private boolean restart_round = false;
-
     private String message = "Game Over";
-
     private Thread animator;
 
     public Board(int m_c){
