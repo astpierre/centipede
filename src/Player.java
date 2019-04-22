@@ -2,12 +2,9 @@ import java.awt.event.MouseEvent;
 import javax.swing.ImageIcon;
 
 public class Player extends Sprite implements Constraints {
-
     private final int START_Y = 600;
     private final int START_X = 350;
-
-
-    private final String playerImg = "images/player.png";
+    private final String playerImagePath = "images/player.png";
     private int width;
 
     public Player() {
@@ -15,9 +12,9 @@ public class Player extends Sprite implements Constraints {
     }
 
     private void initPlayer() {
-        ImageIcon ii = new ImageIcon(playerImg);
-        width = ii.getImage().getWidth(null);
-        setImage(ii.getImage());
+        ImageIcon playerIcon = new ImageIcon(playerImagePath);
+        width = playerIcon.getImage().getWidth(null);
+        setImage(playerIcon.getImage());
         setX(START_X);
         setY(START_Y);
         setVisible(true);
