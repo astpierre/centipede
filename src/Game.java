@@ -8,10 +8,6 @@ import javax.swing.JFrame;
 
 public class Game extends JFrame implements Constraints {
     public Game(int pass_through) {
-        initUI(pass_through);
-    }
-
-    private void initUI(int pass_through) {
         /* Initialize the game board */
         add(new Board(pass_through));
         setTitle("Centipede");

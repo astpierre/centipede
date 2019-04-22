@@ -27,13 +27,11 @@ public class Board extends JPanel implements Runnable, Constraints {
     private boolean restart_round = false;
     private String message = "Game Over";
     private Thread animator;
+    private boolean updatePresent = true;
+    private String updateString = "";
     File shotSoundFile = new File("sounds/shotSound.wav");
 
     public Board(int m_c){
-        initBoard();
-    }
-
-    private void initBoard() {
         TAdapter t_a = new TAdapter();
         addMouseListener(t_a);
         addMouseMotionListener(t_a);
@@ -62,11 +60,12 @@ public class Board extends JPanel implements Runnable, Constraints {
         }
 
     }
+
     public void drawInitCentipede() {
         for (int i = (BOARD_WIDTH - CENTIPEDE_WIDTH); i > (BOARD_WIDTH - CENTIPEDE_WIDTH) - (CENTIPEDE_WIDTH * NUMBER_OF_CENTIPEDES_TO_DESTROY); i -= CENTIPEDE_WIDTH) {
             centipedes.add(new Centipede(i, 32));
             try {
-                Thread.sleep(30);
+                Thread.sleep(25);
             } catch(InterruptedException ex) {
                 Thread.currentThread().interrupt();
             }
@@ -82,12 +81,12 @@ public class Board extends JPanel implements Runnable, Constraints {
         } catch(Exception e) {   }
     }
 
-
     public void drawPlayer(Graphics g) {
         if (player.isVisible()) {
             g.drawImage(player.getImage(), player.getX(), player.getY(), this);
         }
     }
+
     public void drawShot(Graphics g) {
         for (Shot shot : shots) {
             if (shot.isVisible()) {
@@ -95,9 +94,10 @@ public class Board extends JPanel implements Runnable, Constraints {
             }
         }
     }
+
     public void drawScore(Graphics g) {
         if (ingame) {
-            Font small = new Font("Helvetica", Font.BOLD, 14);
+            Font small = new Font("Courier", Font.BOLD, 14);
             FontMetrics metr = this.getFontMetrics(small);
             g.setColor(Color.white);
             g.setFont(small);
@@ -105,75 +105,73 @@ public class Board extends JPanel implements Runnable, Constraints {
         }
     }
 
+    public void drawUpdate(Graphics g) {
+        // updatePresent = false;
+        if (ingame) {
+            Font small = new Font("Courier", Font.BOLD, 14);
+            FontMetrics metr = this.getFontMetrics(small);
+            g.setColor(Color.pink);
+            g.setFont(small);
+            g.drawString(updateString, 275, 16);
+        }
+    }
+
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-
         g.setColor(Color.black);
-        g.fillRect(0, 0, d.width, d.height);
-        g.setColor(Color.blue);
-        Font small = new Font("Helvetica", Font.BOLD, 14);
-        FontMetrics metr = this.getFontMetrics(small);
-        g.setColor(Color.white);
-        g.setFont(small);
-        g.drawString("Score: " + game_score, 2, 16);
 
         if (ingame) {
             drawPlayer(g);
             drawScore(g);
             drawShot(g);
             drawCentipedes(g);
+            if(updatePresent) drawUpdate(g);
         }
         Toolkit.getDefaultToolkit().sync();
         g.dispose();
     }
 
     public void drawCentipedes(Graphics g) {
-        for (Centipede centipede: centipedes) {
-            if (centipede.isVisible()) {
-                g.drawImage(centipede.getImage(), centipede.getX(), centipede.getY(), this);
-            }
-
-            if (centipede.isDying()) {
+        for(Centipede centipede: centipedes) {
+            if(centipede.isDying()) {
                 centipede.die();
+            } else if(centipede.isVisible()) {
+                g.drawImage(centipede.getImage(), centipede.getX(), centipede.getY(), this);
             }
         }
     }
 
-
-
     public void animationCycle() {
-        player.act();
+        player.update();
         animateShots();
         animateCentipedes();
     }
 
     private void animateCentipedes() {
-        Iterator itr_centipede = centipedes.iterator();
-        for (Centipede centipede : centipedes) {
+        for(Centipede centipede : centipedes) {
             if (centipede.isVisible()) {
                 int c_x = centipede.getX();
                 int c_y = centipede.getY();
 
-                if (c_x + CENTIPEDE_WIDTH > BOARD_WIDTH) {
-                    if (c_y <= GROUND - CENTIPEDE_HEIGHT) {
-                        centipede.setY(c_y + CENTIPEDE_HEIGHT);
+                if (c_x > centipede.rightBarrier) {
+                    if (c_y <= centipede.bottomBarrier) {
+                        centipede.downLevel();
                     }
-                    centipede.act(-CENTIPEDE_SPEED);
-                    centipede.cDir = -CENTIPEDE_SPEED;
+                    centipede.goLeft();
                 } else if(c_x < 0) {
-                    if (c_y <= GROUND - CENTIPEDE_HEIGHT) {
-                        centipede.setY(c_y + CENTIPEDE_HEIGHT);
+                    if (c_y <= centipede.bottomBarrier) {
+                        centipede.downLevel();
                     }
-                    centipede.act(CENTIPEDE_SPEED);
-                    centipede.cDir = CENTIPEDE_SPEED;
+                    centipede.goRight();
                 }
                 else {
-                    centipede.act(centipede.cDir);
+                    centipede.update(centipede.direction);
                 }
             }
         }
     }
+
     private void animateShots() {
         for (Shot shot : shots) {
             if (shot.isVisible()) {
@@ -188,12 +186,14 @@ public class Board extends JPanel implements Runnable, Constraints {
                     if (centipede.isVisible() && shot.isVisible()) {
                         if (shotX >= centipedeX && shotX <= (centipedeX + CENTIPEDE_WIDTH)
                                 && shotY >= centipedeY && shotY <= (centipedeY + CENTIPEDE_HEIGHT)) {
-                            centipede.switchState();
+                            centipede.gotShot();
                             if (centipede.isDying()) {
                                 game_score += 5;
+                                updateString = "KILLED A CENTIPEDE SEGMENT!!! +5";
                             }
                             else {
                                 game_score += 2;
+                                updateString = "HIT A CENTIPEDE SEGMENT! +2";
                             }
                             shot.die();
                         }
@@ -242,7 +242,6 @@ public class Board extends JPanel implements Runnable, Constraints {
             int y = player.getY();
             shots.add(new Shot(x, y));
             //playSound(shotSoundFile);
-            game_score += 1;
         }
     }
 }

@@ -8,10 +8,6 @@ public class Player extends Sprite implements Constraints {
     private int width;
 
     public Player() {
-        initPlayer();
-    }
-
-    private void initPlayer() {
         ImageIcon playerIcon = new ImageIcon(playerImagePath);
         width = playerIcon.getImage().getWidth(null);
         setImage(playerIcon.getImage());
@@ -20,7 +16,7 @@ public class Player extends Sprite implements Constraints {
         setVisible(true);
     }
 
-    public void act() {
+    public void update() {
         x += dx;
         y += dy;
 
@@ -28,7 +24,7 @@ public class Player extends Sprite implements Constraints {
             x = 0;
         }
 
-        if (x >= BOARD_WIDTH - PLAYER_WIDTH){
+        if (x >= BOARD_WIDTH - PLAYER_WIDTH) {
             x = BOARD_WIDTH - PLAYER_WIDTH;
         }
 
@@ -36,7 +32,7 @@ public class Player extends Sprite implements Constraints {
             y = 0;
         }
 
-        if (y >= BOARD_HEIGHT - PLAYER_HEIGHT){
+        if (y >= BOARD_HEIGHT - PLAYER_HEIGHT) {
             y = BOARD_HEIGHT - PLAYER_HEIGHT;
         }
 
