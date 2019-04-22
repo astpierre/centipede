@@ -2,7 +2,9 @@ import java.awt.event.MouseEvent;
 import javax.swing.ImageIcon;
 
 public class Centipede extends Sprite implements Constraints {
-    private final String centipedeHeadImagePath = "images/centipedeHead.png";
+    private final String centipedeHeadRImagePath = "images/centipedeHeadR.png";
+    private final String centipedeHeadLImagePath = "images/centipedeHeadL.png";
+    private final String centipedeHeadSickImagePath = "images/centipedeHeadSick.png";
     private final String centipedeBodyImagePath = "images/centipedeBody.png";
     public int hitCount;
     public int cDir = -CENTIPEDE_SPEED;
@@ -12,7 +14,7 @@ public class Centipede extends Sprite implements Constraints {
     }
 
     private void initCentipede(int x, int y) {
-        ImageIcon centipedeHeadIcon = new ImageIcon(centipedeHeadImagePath);
+        ImageIcon centipedeHeadIcon = new ImageIcon(centipedeHeadLImagePath);
         setImage(centipedeHeadIcon.getImage());
         hitCount = 0;
         setVisible(true);
@@ -29,13 +31,13 @@ public class Centipede extends Sprite implements Constraints {
             this.setDying(true);
         }
         else if (hitCount == 1) {
-            ImageIcon centipedeBodyIcon = new ImageIcon(centipedeBodyImagePath);
-            setImage(centipedeBodyIcon.getImage());
+            ImageIcon centipedeIcon = new ImageIcon(centipedeHeadSickImagePath);
+            setImage(centipedeIcon.getImage());
         }
     }
 
     public void setInitialImage() {
-        ImageIcon centipedeHeadIcon = new ImageIcon(centipedeHeadImagePath);
+        ImageIcon centipedeHeadIcon = new ImageIcon(centipedeHeadLImagePath);
         setImage(centipedeHeadIcon.getImage());
         hitCount = 0;
         setVisible(true);

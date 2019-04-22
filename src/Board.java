@@ -65,6 +65,11 @@ public class Board extends JPanel implements Runnable, Constraints {
     public void drawInitCentipede() {
         for (int i = (BOARD_WIDTH - CENTIPEDE_WIDTH); i > (BOARD_WIDTH - CENTIPEDE_WIDTH) - (CENTIPEDE_WIDTH * NUMBER_OF_CENTIPEDES_TO_DESTROY); i -= CENTIPEDE_WIDTH) {
             centipedes.add(new Centipede(i, 32));
+            try {
+                Thread.sleep(30);
+            } catch(InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
@@ -136,8 +141,40 @@ public class Board extends JPanel implements Runnable, Constraints {
     }
 
 
+
     public void animationCycle() {
         player.act();
+        animateShots();
+        animateCentipedes();
+    }
+
+    private void animateCentipedes() {
+        Iterator itr_centipede = centipedes.iterator();
+        for (Centipede centipede : centipedes) {
+            if (centipede.isVisible()) {
+                int c_x = centipede.getX();
+                int c_y = centipede.getY();
+
+                if (c_x + CENTIPEDE_WIDTH > BOARD_WIDTH) {
+                    if (c_y <= GROUND - CENTIPEDE_HEIGHT) {
+                        centipede.setY(c_y + CENTIPEDE_HEIGHT);
+                    }
+                    centipede.act(-CENTIPEDE_SPEED);
+                    centipede.cDir = -CENTIPEDE_SPEED;
+                } else if(c_x < 0) {
+                    if (c_y <= GROUND - CENTIPEDE_HEIGHT) {
+                        centipede.setY(c_y + CENTIPEDE_HEIGHT);
+                    }
+                    centipede.act(CENTIPEDE_SPEED);
+                    centipede.cDir = CENTIPEDE_SPEED;
+                }
+                else {
+                    centipede.act(centipede.cDir);
+                }
+            }
+        }
+    }
+    private void animateShots() {
         for (Shot shot : shots) {
             if (shot.isVisible()) {
                 int shotX = shot.getX();
@@ -170,33 +207,6 @@ public class Board extends JPanel implements Runnable, Constraints {
                 }
             }
         }
-
-        Iterator itr_centipede = centipedes.iterator();
-        while (itr_centipede.hasNext()) {
-            Centipede centipede = (Centipede) itr_centipede.next();
-            if (centipede.isVisible()) {
-                int c_x = centipede.getX();
-                int c_y = centipede.getY();
-
-                if (c_x + CENTIPEDE_WIDTH > BOARD_WIDTH) {
-                    if (c_y <= GROUND - CENTIPEDE_HEIGHT) {
-                        centipede.setY(c_y + CENTIPEDE_HEIGHT);
-                    }
-                    centipede.act(-CENTIPEDE_SPEED);
-                    centipede.cDir = -CENTIPEDE_SPEED;
-                } else if(c_x < 0) {
-                    if (c_y <= GROUND - CENTIPEDE_HEIGHT) {
-                        centipede.setY(c_y + CENTIPEDE_HEIGHT);
-                    }
-                    centipede.act(CENTIPEDE_SPEED);
-                    centipede.cDir = CENTIPEDE_SPEED;
-                }
-                else {
-                    centipede.act(centipede.cDir);
-                }
-            }
-        }
-
     }
 
     @Override
