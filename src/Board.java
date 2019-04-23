@@ -71,8 +71,8 @@ public class Board extends JPanel implements Runnable, Constraints {
     }
 
     public void drawInitMushrooms() {
-        int mushroomStartY = 32+CENTIPEDE_HEIGHT;
-        int mushroomEndY = BOARD_HEIGHT-PLAYER_HEIGHT-10-MUSHROOM_HEIGHT;
+        int mushroomStartY = 32+2*CENTIPEDE_HEIGHT;
+        int mushroomEndY = GROUND-PLAYER_HEIGHT-5;
         int mushroomMinX = 1;
         int mushroomMaxX = (BOARD_WIDTH-MUSHROOM_WIDTH)/MUSHROOM_WIDTH;
         int numberMushroomsPerRow = 6; /* TODO: fix to be user provided */
@@ -80,7 +80,7 @@ public class Board extends JPanel implements Runnable, Constraints {
         for(int i=mushroomStartY; i<mushroomEndY; i+=3*CENTIPEDE_HEIGHT) {
             for(int j=0; j<numberMushroomsPerRow; j++) {
                 double tmp = (int)(Math.random()*((mushroomMaxX-mushroomMinX)+1))+mushroomMinX;
-                mushrooms.add(new Mushroom(i, (int)(tmp)*MUSHROOM_WIDTH));
+                mushrooms.add(new Mushroom((int)(tmp)*MUSHROOM_WIDTH, i));
             }
         }
     }
@@ -177,7 +177,26 @@ public class Board extends JPanel implements Runnable, Constraints {
             if (centipede.isVisible()) {
                 int c_x = centipede.getX();
                 int c_y = centipede.getY();
-
+                for(Mushroom mushroom: mushrooms) {
+                    int m_x = mushroom.getX();
+                    int m_y = mushroom.getY();
+                    if (mushroom.isVisible() && centipede.isVisible()) {
+                        if (m_x >= c_x && m_x <= (c_x + CENTIPEDE_WIDTH)
+                                && m_y >= c_y && m_y <= (c_y + CENTIPEDE_HEIGHT)) {
+                            switch(centipede.direction) {
+                                case "L":
+                                    centipede.goRight();
+                                    break;
+                                case "R":
+                                    centipede.goLeft();
+                                    break;
+                            }
+                            if (c_y <= centipede.bottomBarrier) {
+                                centipede.downLevel();
+                            }
+                        }
+                    }
+                }
                 if (c_x > centipede.rightBarrier) {
                     if (c_y <= centipede.bottomBarrier) {
                         centipede.downLevel();
