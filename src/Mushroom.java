@@ -6,12 +6,25 @@ public class Mushroom extends Sprite implements Constraints {
     private final String mushroomHit1ImagePath = "images/mushroomHit1.png";
     private final String mushroomHit2ImagePath = "images/mushroomHit2.png";
     public int hitCount;
+    public int initX;
+    public int initY;
 
     public Mushroom(int x, int y) {
+        initX = x;
+        initY = y;
         hitCount = 0;
         updateImage();
         setX(x);
         setY(y);
+        setVisible(true);
+    }
+
+    public void restore() {
+        setX(initX);
+        setY(initY);
+        hitCount = 0;
+        updateImage();
+        setDying(false);
         setVisible(true);
     }
 

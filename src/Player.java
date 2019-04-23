@@ -2,10 +2,12 @@ import java.awt.event.MouseEvent;
 import javax.swing.ImageIcon;
 
 public class Player extends Sprite implements Constraints {
-    private final int START_Y = 600;
-    private final int START_X = 350;
+    public final int START_Y = 600;
+    public final int START_X = 350;
     private final String playerImagePath = "images/player.png";
     private int width;
+    public int lives = 3;
+    public boolean gameOver = false;
 
     public Player() {
         ImageIcon playerIcon = new ImageIcon(playerImagePath);
@@ -38,6 +40,15 @@ public class Player extends Sprite implements Constraints {
 
         dx = 0;
         dy = 0;
+    }
+
+    public void loseLife() {
+        if(lives == 0) {
+            gameOver = true;
+            die();
+        } else {
+            lives--;
+        }
     }
 
     public void mouseMoved(MouseEvent e) {

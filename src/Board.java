@@ -29,12 +29,15 @@ public class Board extends JPanel implements Runnable, Constraints {
     private Thread animator;
     private boolean updatePresent = true;
     private String updateString = "";
+    public boolean spaceEntered = false;
     File shotSoundFile = new File("sounds/shotSound.wav");
 
     public Board(int m_c){
         TAdapter t_a = new TAdapter();
+        SpaceToContinue s_to_c = new SpaceToContinue();
         addMouseListener(t_a);
         addMouseMotionListener(t_a);
+        addKeyListener(s_to_c);
         setFocusable(true);
         d = new Dimension(BOARD_WIDTH, BOARD_HEIGHT);
         setBackground(Color.BLACK);
@@ -61,6 +64,24 @@ public class Board extends JPanel implements Runnable, Constraints {
             animator.start();
         }
 
+        updateString = "HIT SPACEBAR TO PLAY";
+    }
+
+    public void restart() {
+        player.setX(player.START_X);
+        player.setY(player.START_Y);
+        player.setVisible(true);
+
+        for(Shot shot: shots) {
+            shot.setVisible(false);
+        }
+        for(Centipede centipede: centipedes) {
+            centipede.restore();
+        }
+        for(Mushroom mushroom: mushrooms) {
+            mushroom.restore();
+        }
+        updateString = "HIT SPACEBAR TO CONTINUE";
     }
 
     public void drawInitCentipede() {
@@ -75,13 +96,23 @@ public class Board extends JPanel implements Runnable, Constraints {
         int mushroomEndY = GROUND-PLAYER_HEIGHT-5;
         int mushroomMinX = 1;
         int mushroomMaxX = (BOARD_WIDTH-MUSHROOM_WIDTH)/MUSHROOM_WIDTH;
-        int numberMushroomsPerRow = 6; /* TODO: fix to be user provided */
+        int numberMushroomsPerRow = 3; /* TODO: fix to be user provided */
 
         for(int i=mushroomStartY; i<mushroomEndY; i+=3*CENTIPEDE_HEIGHT) {
             for(int j=0; j<numberMushroomsPerRow; j++) {
                 double tmp = (int)(Math.random()*((mushroomMaxX-mushroomMinX)+1))+mushroomMinX;
                 mushrooms.add(new Mushroom((int)(tmp)*MUSHROOM_WIDTH, i));
             }
+        }
+    }
+
+    public void drawLives(Graphics g) {
+        if (ingame) {
+            Font small = new Font("Courier", Font.BOLD, 12);
+            FontMetrics metr = this.getFontMetrics(small);
+            g.setColor(Color.blue);
+            g.setFont(small);
+            g.drawString("Lives: "+player.lives, 175, 16);
         }
     }
 
@@ -97,13 +128,17 @@ public class Board extends JPanel implements Runnable, Constraints {
     public void drawPlayer(Graphics g) {
         if (player.isVisible()) {
             g.drawImage(player.getImage(), player.getX(), player.getY(), this);
+        } else {
+            restart_round = true;
         }
     }
 
     public void drawShot(Graphics g) {
-        for (Shot shot : shots) {
-            if (shot.isVisible()) {
-                g.drawImage(shot.getImage(), shot.getX(), shot.getY(), this);
+        if(ingame) {
+            for (Shot shot : shots) {
+                if (shot.isVisible()) {
+                    g.drawImage(shot.getImage(), shot.getX(), shot.getY(), this);
+                }
             }
         }
     }
@@ -141,6 +176,7 @@ public class Board extends JPanel implements Runnable, Constraints {
             drawCentipedes(g);
             drawMushrooms(g);
             if(updatePresent) drawUpdate(g);
+            drawLives(g);
         }
         Toolkit.getDefaultToolkit().sync();
         g.dispose();
@@ -167,9 +203,18 @@ public class Board extends JPanel implements Runnable, Constraints {
     }
 
     public void animationCycle() {
-        player.update();
-        animateShots();
-        animateCentipedes();
+        if(ingame) {
+            if(spaceEntered) {
+                if(updateString == "HIT SPACEBAR TO CONTINUE") {
+                    updateString = "";
+                } else if(updateString == "HIT SPACEBAR TO PLAY") {
+                    updateString = "";
+                }
+                player.update();
+                animateShots();
+                animateCentipedes();
+            }
+        }
     }
 
     private void animateCentipedes() {
@@ -180,9 +225,8 @@ public class Board extends JPanel implements Runnable, Constraints {
                 for(Mushroom mushroom: mushrooms) {
                     int m_x = mushroom.getX();
                     int m_y = mushroom.getY();
-                    if (mushroom.isVisible() && centipede.isVisible()) {
-                        if (m_x >= c_x && m_x <= (c_x + CENTIPEDE_WIDTH)
-                                && m_y >= c_y && m_y <= (c_y + CENTIPEDE_HEIGHT)) {
+                    if(mushroom.isVisible() && centipede.isVisible()) {
+                        if(collision(m_x, m_y, c_x, c_y, CENTIPEDE_WIDTH, CENTIPEDE_HEIGHT)) {
                             switch(centipede.direction) {
                                 case "L":
                                     centipede.goRight();
@@ -197,6 +241,7 @@ public class Board extends JPanel implements Runnable, Constraints {
                         }
                     }
                 }
+
                 if (c_x > centipede.rightBarrier) {
                     if (c_y <= centipede.bottomBarrier) {
                         centipede.downLevel();
@@ -211,30 +256,46 @@ public class Board extends JPanel implements Runnable, Constraints {
                 else {
                     centipede.update(centipede.direction);
                 }
+
+                int p_x = player.getX();
+                int p_y = player.getY();
+                if(collision(p_x, p_y, c_x, c_y, CENTIPEDE_WIDTH, CENTIPEDE_HEIGHT)) {
+                    player.loseLife();
+                    spaceEntered = false;
+                    restart();
+                }
             }
         }
+    }
+
+    private boolean collision(int a_x, int a_y, int b_x, int b_y, int b_width, int b_height) {
+        if(a_x >= b_x && a_x <= (b_x + b_width)) {
+            if(a_y >= b_y && a_y <= (b_y+b_height)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void animateShots() {
         for (Shot shot : shots) {
             if (shot.isVisible()) {
-                int shotX = shot.getX();
-                int shotY = shot.getY();
-                shotY -= SHOT_SPEED;
+                int s_x = shot.getX();
+                int s_y = shot.getY();
+                s_y -= SHOT_SPEED;
 
                 for (Centipede centipede: centipedes) {
-                    int centipedeX = centipede.getX();
-                    int centipedeY = centipede.getY();
+                    int c_x = centipede.getX();
+                    int c_y = centipede.getY();
 
                     if (centipede.isVisible() && shot.isVisible()) {
-                        if (shotX >= centipedeX && shotX <= (centipedeX + CENTIPEDE_WIDTH)
-                                && shotY >= centipedeY && shotY <= (centipedeY + CENTIPEDE_HEIGHT)) {
+                        if(collision(s_x, s_y, c_x, c_y, CENTIPEDE_WIDTH, CENTIPEDE_HEIGHT)) {
                             centipede.gotShot();
+
                             if (centipede.isDying()) {
                                 game_score += 5;
                                 updateString = "KILLED A CENTIPEDE SEGMENT!!! +5";
-                            }
-                            else {
+                            } else {
                                 game_score += 2;
                                 updateString = "HIT A CENTIPEDE SEGMENT! +2";
                             }
@@ -243,12 +304,11 @@ public class Board extends JPanel implements Runnable, Constraints {
                     }
                 }
                 for (Mushroom mushroom: mushrooms) {
-                    int mushroomX = mushroom.getX();
-                    int mushroomY = mushroom.getY();
+                    int m_x = mushroom.getX();
+                    int m_y = mushroom.getY();
 
                     if (mushroom.isVisible() && shot.isVisible()) {
-                        if (shotX >= mushroomX && shotX <= (mushroomX + MUSHROOM_WIDTH)
-                                && shotY >= mushroomY && shotY <= (mushroomY + MUSHROOM_HEIGHT)) {
+                        if(collision(s_x, s_y, m_x, m_y, MUSHROOM_WIDTH, MUSHROOM_HEIGHT)) {
                             mushroom.gotShot();
                             if (mushroom.isDying()) {
                                 game_score += 5;
@@ -263,10 +323,10 @@ public class Board extends JPanel implements Runnable, Constraints {
                     }
                 }
 
-                if (shotY < 0) {
+                if (s_y < 0) {
                     shot.die();
                 } else {
-                    shot.setY(shotY);
+                    shot.setY(s_y);
                 }
             }
         }
@@ -290,6 +350,22 @@ public class Board extends JPanel implements Runnable, Constraints {
                 System.out.println("interrupted");
             }
             beforeTime = System.currentTimeMillis();
+        }
+    }
+
+    private class SpaceToContinue extends KeyAdapter implements KeyListener {
+        @Override
+        public void keyTyped(KeyEvent e) {  }
+        @Override
+        public void keyReleased(KeyEvent e) {
+            //spaceEntered = false;
+        }
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if ( e.getKeyCode() == KeyEvent.VK_SPACE ) {
+                spaceEntered = true;
+                //ingame = true;
+            }
         }
     }
 
