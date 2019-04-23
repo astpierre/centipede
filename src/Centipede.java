@@ -13,8 +13,10 @@ public class Centipede extends Sprite implements Constraints {
     public String direction = "L";
 
     public Centipede(int x, int y) {
-        updateImage("L");
         hitCount = 0;
+        setX(x);
+        setY(y);
+        updateImage("L");
         setVisible(true);
         direction = "L";
     }

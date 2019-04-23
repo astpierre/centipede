@@ -21,7 +21,7 @@ public class Board extends JPanel implements Runnable, Constraints {
     private Player player;
     private Vector<Shot> shots;
     private Vector<Centipede> centipedes;
-    //private vector<Mushroom> mushrooms;
+    private Vector<Mushroom> mushrooms;
     private int game_score = 0;
     private boolean ingame = true;
     private boolean restart_round = false;
@@ -52,7 +52,9 @@ public class Board extends JPanel implements Runnable, Constraints {
         player = new Player();
         shots = new Vector<>();
         centipedes = new Vector<>();
+        mushrooms = new Vector<>();
         drawInitCentipede();
+        drawInitMushrooms();
 
         if (animator == null || !ingame){
             animator = new Thread(this);
@@ -62,12 +64,23 @@ public class Board extends JPanel implements Runnable, Constraints {
     }
 
     public void drawInitCentipede() {
-        for (int i = (BOARD_WIDTH - CENTIPEDE_WIDTH); i > (BOARD_WIDTH - CENTIPEDE_WIDTH) - (CENTIPEDE_WIDTH * NUMBER_OF_CENTIPEDES_TO_DESTROY); i -= CENTIPEDE_WIDTH) {
-            centipedes.add(new Centipede(i, 32));
-            try {
-                Thread.sleep(25);
-            } catch(InterruptedException ex) {
-                Thread.currentThread().interrupt();
+        int centipedeEnd = BOARD_WIDTH-CENTIPEDE_WIDTH;
+        for(int i=0; i<NUMBER_OF_CENTIPEDES_TO_DESTROY; i++) {
+            centipedes.add(new Centipede(centipedeEnd-(i*CENTIPEDE_WIDTH), 32));
+        }
+    }
+
+    public void drawInitMushrooms() {
+        int mushroomStartY = 32+CENTIPEDE_HEIGHT;
+        int mushroomEndY = BOARD_HEIGHT-PLAYER_HEIGHT-10-MUSHROOM_HEIGHT;
+        int mushroomMinX = 1;
+        int mushroomMaxX = (BOARD_WIDTH-MUSHROOM_WIDTH)/MUSHROOM_WIDTH;
+        int numberMushroomsPerRow = 6; /* TODO: fix to be user provided */
+
+        for(int i=mushroomStartY; i<mushroomEndY; i+=3*CENTIPEDE_HEIGHT) {
+            for(int j=0; j<numberMushroomsPerRow; j++) {
+                double tmp = (int)(Math.random()*((mushroomMaxX-mushroomMinX)+1))+mushroomMinX;
+                mushrooms.add(new Mushroom(i, (int)(tmp)*MUSHROOM_WIDTH));
             }
         }
     }
@@ -126,6 +139,7 @@ public class Board extends JPanel implements Runnable, Constraints {
             drawScore(g);
             drawShot(g);
             drawCentipedes(g);
+            drawMushrooms(g);
             if(updatePresent) drawUpdate(g);
         }
         Toolkit.getDefaultToolkit().sync();
@@ -138,6 +152,16 @@ public class Board extends JPanel implements Runnable, Constraints {
                 centipede.die();
             } else if(centipede.isVisible()) {
                 g.drawImage(centipede.getImage(), centipede.getX(), centipede.getY(), this);
+            }
+        }
+    }
+
+    public void drawMushrooms(Graphics g) {
+        for(Mushroom mushroom: mushrooms) {
+            if(mushroom.isDying()) {
+                mushroom.die();
+            } else if(mushroom.isVisible()) {
+                g.drawImage(mushroom.getImage(), mushroom.getX(), mushroom.getY(), this);
             }
         }
     }
@@ -194,6 +218,26 @@ public class Board extends JPanel implements Runnable, Constraints {
                             else {
                                 game_score += 2;
                                 updateString = "HIT A CENTIPEDE SEGMENT! +2";
+                            }
+                            shot.die();
+                        }
+                    }
+                }
+                for (Mushroom mushroom: mushrooms) {
+                    int mushroomX = mushroom.getX();
+                    int mushroomY = mushroom.getY();
+
+                    if (mushroom.isVisible() && shot.isVisible()) {
+                        if (shotX >= mushroomX && shotX <= (mushroomX + MUSHROOM_WIDTH)
+                                && shotY >= mushroomY && shotY <= (mushroomY + MUSHROOM_HEIGHT)) {
+                            mushroom.gotShot();
+                            if (mushroom.isDying()) {
+                                game_score += 5;
+                                updateString = "KILLED A MUSHROOM!!! +5";
+                            }
+                            else {
+                                game_score += 1;
+                                updateString = "HIT A MUSHROOM! +1";
                             }
                             shot.die();
                         }
