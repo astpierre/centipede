@@ -90,7 +90,7 @@ public class Board extends JPanel implements Runnable, Constraints {
             for(Mushroom mushroom: mushrooms) {
                 mushroom.restore();
             }
-            updateString = "HIT SPACEBAR TO CONTINUE";
+            updateString = "You died, HIT SPACEBAR TO CONTINUE";
         }
     }
 
@@ -244,7 +244,7 @@ public class Board extends JPanel implements Runnable, Constraints {
     public void animationCycle() {
         if(ingame) {
             if(spaceEntered) {
-                if(updateString == "HIT SPACEBAR TO CONTINUE") {
+                if(updateString == "YOU DIED, HIT SPACEBAR TO CONTINUE") {
                     updateString = "";
                 } else if(updateString == "HIT SPACEBAR TO PLAY") {
                     updateString = "";
