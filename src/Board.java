@@ -22,6 +22,7 @@ public class Board extends JPanel implements Runnable, Constraints {
     private Vector<Shot> shots;
     private Vector<Centipede> centipedes;
     private Vector<Mushroom> mushrooms;
+    private Spider spider;
     private int game_score = 0;
     private boolean ingame = true;
     private boolean restart_round = false;
@@ -30,6 +31,7 @@ public class Board extends JPanel implements Runnable, Constraints {
     private boolean updatePresent = true;
     private String updateString = "";
     public boolean spaceEntered = false;
+    public int numKills = 0;
     File shotSoundFile = new File("sounds/shotSound.wav");
 
     public Board(int m_c){
@@ -53,6 +55,7 @@ public class Board extends JPanel implements Runnable, Constraints {
 
     public void gameInit() {
         player = new Player();
+        spider = new Spider(200,32);
         shots = new Vector<>();
         centipedes = new Vector<>();
         mushrooms = new Vector<>();
@@ -68,9 +71,36 @@ public class Board extends JPanel implements Runnable, Constraints {
     }
 
     public void restart() {
+        if(player.lives < 0) {
+            updateString = "GAME OVER :(";
+        } else {
+            player.setX(player.START_X);
+            player.setY(player.START_Y);
+            player.setVisible(true);
+            numKills = 0;
+
+            spider.restore();
+
+            for(Shot shot: shots) {
+                shot.setVisible(false);
+            }
+            for(Centipede centipede: centipedes) {
+                centipede.restore();
+            }
+            for(Mushroom mushroom: mushrooms) {
+                mushroom.restore();
+            }
+            updateString = "HIT SPACEBAR TO CONTINUE";
+        }
+    }
+
+    public void gameWon() {
         player.setX(player.START_X);
         player.setY(player.START_Y);
         player.setVisible(true);
+        numKills = 0;
+
+        spider.restore();
 
         for(Shot shot: shots) {
             shot.setVisible(false);
@@ -86,7 +116,7 @@ public class Board extends JPanel implements Runnable, Constraints {
 
     public void drawInitCentipede() {
         int centipedeEnd = BOARD_WIDTH-CENTIPEDE_WIDTH;
-        for(int i=0; i<NUMBER_OF_CENTIPEDES_TO_DESTROY; i++) {
+        for(int i=0; i<NUMBER_OF_CENTIPEDES_TO_KILL; i++) {
             centipedes.add(new Centipede(centipedeEnd-(i*CENTIPEDE_WIDTH), 32));
         }
     }
@@ -174,6 +204,7 @@ public class Board extends JPanel implements Runnable, Constraints {
             drawScore(g);
             drawShot(g);
             drawCentipedes(g);
+            drawSpider(g);
             drawMushrooms(g);
             if(updatePresent) drawUpdate(g);
             drawLives(g);
@@ -189,6 +220,14 @@ public class Board extends JPanel implements Runnable, Constraints {
             } else if(centipede.isVisible()) {
                 g.drawImage(centipede.getImage(), centipede.getX(), centipede.getY(), this);
             }
+        }
+    }
+
+    public void drawSpider(Graphics g) {
+        if(spider.isDying()) {
+            spider.die();
+        } else if(spider.isVisible()) {
+            g.drawImage(spider.getImage(), spider.getX(), spider.getY(), this);
         }
     }
 
@@ -213,6 +252,7 @@ public class Board extends JPanel implements Runnable, Constraints {
                 player.update();
                 animateShots();
                 animateCentipedes();
+                animateSpider();
             }
         }
     }
@@ -268,6 +308,57 @@ public class Board extends JPanel implements Runnable, Constraints {
         }
     }
 
+    private void animateSpider() {
+        if(spider.isVisible()) {
+            int s_x = spider.getX();
+            int s_y = spider.getY();
+            for(Mushroom mushroom: mushrooms) {
+                int m_x = mushroom.getX();
+                int m_y = mushroom.getY();
+                if(mushroom.isVisible() && spider.isVisible()) {
+                    if(collision(m_x, m_y, s_x, s_y, SPIDER_WIDTH, SPIDER_HEIGHT)) {
+                        switch(spider.direction) {
+                            case "L":
+                                spider.goRight();
+                                break;
+                            case "R":
+                                spider.goLeft();
+                                break;
+                        }
+                        if (s_y <= spider.bottomBarrier) {
+                            spider.changeLevel();
+                        }
+                    }
+                }
+            }
+
+            if (s_x > spider.rightBarrier) {
+                if (s_y > spider.bottomBarrier) {
+                    spider.goUp();
+                }
+                spider.goLeft();
+            } else if(s_x < 0) {
+                if (s_y > spider.bottomBarrier) {
+                    spider.goUp();
+                }
+                spider.goRight();
+            } else if(s_y > spider.bottomBarrier) {
+                spider.goUp();
+            }
+            else {
+                spider.update(spider.direction);
+            }
+
+            int p_x = player.getX();
+            int p_y = player.getY();
+            if(collision(p_x, p_y, s_x, s_y, SPIDER_WIDTH, SPIDER_HEIGHT)) {
+                player.loseLife();
+                spaceEntered = false;
+                restart();
+            }
+        }
+    }
+
     private boolean collision(int a_x, int a_y, int b_x, int b_y, int b_width, int b_height) {
         if(a_x >= b_x && a_x <= (b_x + b_width)) {
             if(a_y >= b_y && a_y <= (b_y+b_height)) {
@@ -295,6 +386,12 @@ public class Board extends JPanel implements Runnable, Constraints {
                             if (centipede.isDying()) {
                                 game_score += 5;
                                 updateString = "KILLED A CENTIPEDE SEGMENT!!! +5";
+                                if(++numKills == NUMBER_OF_CENTIPEDES_TO_KILL) {
+                                    updateString = "KILLED ENTIRE CENTIPEDE!!! +600";
+                                    game_score += 600;
+                                    spaceEntered = false;
+                                    gameWon();
+                                }
                             } else {
                                 game_score += 2;
                                 updateString = "HIT A CENTIPEDE SEGMENT! +2";
@@ -320,6 +417,23 @@ public class Board extends JPanel implements Runnable, Constraints {
                             }
                             shot.die();
                         }
+                    }
+                }
+
+                int sp_x = spider.getX();
+                int sp_y = spider.getY();
+                if (spider.isVisible() && shot.isVisible()) {
+                    if(collision(s_x, s_y, sp_x, sp_y, SPIDER_WIDTH, SPIDER_HEIGHT)) {
+                        spider.gotShot();
+                        if(spider.isDying()) {
+                            game_score += 600;
+                            updateString = "KILLED THE SPIDER!!! +600";
+                        }
+                        else {
+                            game_score += 100;
+                            updateString = "HIT THE SPIDER! +100";
+                        }
+                        shot.die();
                     }
                 }
 

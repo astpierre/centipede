@@ -43,12 +43,7 @@ public class Player extends Sprite implements Constraints {
     }
 
     public void loseLife() {
-        if(lives == 0) {
-            gameOver = true;
-            die();
-        } else {
-            lives--;
-        }
+        lives--;
     }
 
     public void mouseMoved(MouseEvent e) {
