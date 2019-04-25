@@ -11,21 +11,7 @@ import java.util.Iterator;
 import java.util.Random;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
 import java.io.*;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
-import org.w3c.dom.Element;
-import java.io.File;
-
 
 public class Board extends JPanel implements Runnable, Constraints {
     private Dimension d;
@@ -45,7 +31,6 @@ public class Board extends JPanel implements Runnable, Constraints {
     public int numKills = 0;
     private int mushroomSeed = 0;
     private boolean enterEntered = true;
-    File shotSoundFile = new File("sounds/shotSound.wav");
 
     public Board(int mushroomSeed) {
         this.mushroomSeed = mushroomSeed;
@@ -179,15 +164,6 @@ public class Board extends JPanel implements Runnable, Constraints {
         }
     }
 
-    public void playSound(File sound) {
-        try {
-            Clip clip = AudioSystem.getClip();
-            clip.open(AudioSystem.getAudioInputStream(sound));
-            clip.start();
-            Thread.sleep(clip.getMicrosecondLength()/1000);
-        } catch(Exception e) {   }
-    }
-
     public void drawPlayer(Graphics g) {
         if (player.isVisible()) {
             g.drawImage(player.getImage(), player.getX(), player.getY(), this);
@@ -217,7 +193,6 @@ public class Board extends JPanel implements Runnable, Constraints {
     }
 
     public void drawUpdate(Graphics g) {
-        // updatePresent = false;
         if (ingame) {
             Font small = new Font("Courier", Font.BOLD, 14);
             FontMetrics metr = this.getFontMetrics(small);
@@ -344,6 +319,7 @@ public class Board extends JPanel implements Runnable, Constraints {
     }
 
     private void animateSpider() {
+      try {
         if(spider.isVisible()) {
             int s_x = spider.getX();
             int s_y = spider.getY();
@@ -396,18 +372,11 @@ public class Board extends JPanel implements Runnable, Constraints {
                 restart();
             }
         }
-    }
-
-    private boolean collision(int a_x, int a_y, int b_x, int b_y, int b_width, int b_height) {
-        if(a_x >= b_x && a_x <= (b_x + b_width)) {
-            if(a_y >= b_y && a_y <= (b_y+b_height)) {
-                return true;
-            }
-        }
-        return false;
+      } catch(Exception e) {  }
     }
 
     private void animateShots() {
+      try {
         for (Shot shot : shots) {
             if (shot.isVisible()) {
                 int s_x = shot.getX();
@@ -483,6 +452,16 @@ public class Board extends JPanel implements Runnable, Constraints {
                 }
             }
         }
+      }  catch(Exception e) {   }
+    }
+
+    private boolean collision(int a_x, int a_y, int b_x, int b_y, int b_width, int b_height) {
+        if(a_x >= b_x && a_x <= (b_x + b_width)) {
+            if(a_y >= b_y && a_y <= (b_y+b_height)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -533,7 +512,6 @@ public class Board extends JPanel implements Runnable, Constraints {
             int x = player.getX();
             int y = player.getY();
             shots.add(new Shot(x, y));
-            //playSound(shotSoundFile);
         }
     }
 }

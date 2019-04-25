@@ -5,13 +5,11 @@ public class Player extends Sprite implements Constraints {
     public final int START_Y = 600;
     public final int START_X = 350;
     private final String playerImagePath = "images/player.png";
-    private int width;
     public int lives = 3;
     public boolean gameOver = false;
 
     public Player() {
         ImageIcon playerIcon = new ImageIcon(playerImagePath);
-        width = playerIcon.getImage().getWidth(null);
         setImage(playerIcon.getImage());
         setX(START_X);
         setY(START_Y);
