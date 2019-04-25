@@ -19,13 +19,16 @@ public class Mushroom extends Sprite implements Constraints {
         setVisible(true);
     }
 
-    public void restore() {
+    public int restore() {
+        int hcPrev = hitCount;
         setX(initX);
         setY(initY);
         hitCount = 0;
         updateImage();
         setDying(false);
         setVisible(true);
+        if(hcPrev > 0) return 1;
+        else return 0;
     }
 
     public void update(String dir) {  }

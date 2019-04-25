@@ -6,7 +6,7 @@ public class Centipede extends Sprite implements Constraints {
     private final String headLeftImagePath = "images/centipedeHeadL.png";
     private final String sickRightImagePath = "images/centipedeHeadSickR.png";
     private final String sickLeftImagePath = "images/centipedeHeadSickL.png";
-    public final int bottomBarrier = GROUND - PLAYER_HEIGHT - 5;
+    public final int bottomBarrier = BOARD_HEIGHT - CENTIPEDE_HEIGHT - PLAYER_HEIGHT - 50;
     public final int rightBarrier = BOARD_WIDTH - CENTIPEDE_WIDTH;
     public int hitCount;
     public int dx = -CENTIPEDE_SPEED;

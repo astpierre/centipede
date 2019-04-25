@@ -6,7 +6,7 @@ import java.util.Random;
 public class Spider extends Sprite implements Constraints {
     private final String spiderImagePath = "images/spider.png";
     private final String spiderHit1ImagePath = "images/spiderHit1.png";
-    public final int bottomBarrier = GROUND + 100 + PLAYER_HEIGHT;// - 5;
+    public final int bottomBarrier = BOARD_HEIGHT - SPIDER_HEIGHT;
     public final int rightBarrier = BOARD_WIDTH - SPIDER_WIDTH;
     public int hitCount;
     public int dx = -SPIDER_SPEED;

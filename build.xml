@@ -52,6 +52,7 @@
             </manifest>
 
             <fileset dir="${destdir}" includes="**/*.class"/>
+            <fileset dir="${destdir}" includes="**/*.xml"/>
         </jar>
 
     </target>

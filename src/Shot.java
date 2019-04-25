@@ -2,8 +2,8 @@ import javax.swing.ImageIcon;
 
 public class Shot extends Sprite {
     private final String shotImagePath = "images/shot.png";
-    private final int H_SPACE = 6;
-    private final int V_SPACE = 1;
+    private final int SHOT_WIDTH = 6;
+    private final int SHOT_HEIGHT = 1;
 
     public Shot() {
     }
@@ -11,8 +11,7 @@ public class Shot extends Sprite {
     public Shot(int x, int y) {
         ImageIcon shotIcon = new ImageIcon(shotImagePath);
         setImage(shotIcon.getImage());
-
-        setX(x + H_SPACE);
-        setY(y + V_SPACE);
+        setX(x + SHOT_WIDTH);
+        setY(y + SHOT_HEIGHT);
     }
 }

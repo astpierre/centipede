@@ -18,23 +18,31 @@ public class Player extends Sprite implements Constraints {
         setVisible(true);
     }
 
+    public void restore() {
+        setX(START_X);
+        setY(START_Y);
+        setVisible(true);
+        lives = 3;
+        gameOver = false;
+    }
+
     public void update() {
         x += dx;
         y += dy;
 
-        if (x <= 0) {
+        if(x <= 0) {
             x = 0;
         }
 
-        if (x >= BOARD_WIDTH - PLAYER_WIDTH) {
+        if(x >= BOARD_WIDTH - PLAYER_WIDTH) {
             x = BOARD_WIDTH - PLAYER_WIDTH;
         }
 
-        if (y <= 0){
+        if(y <= 0){
             y = 0;
         }
 
-        if (y >= BOARD_HEIGHT - PLAYER_HEIGHT) {
+        if(y >= BOARD_HEIGHT - PLAYER_HEIGHT) {
             y = BOARD_HEIGHT - PLAYER_HEIGHT;
         }
 

@@ -7,9 +7,9 @@ import java.awt.Point;
 import javax.swing.JFrame;
 
 public class Game extends JFrame implements Constraints {
-    public Game(int pass_through) {
+    public Game(int mushroomSeed) {
         /* Initialize the game board */
-        add(new Board(pass_through));
+        add(new Board(mushroomSeed));
         setTitle("Centipede");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(BOARD_WIDTH, BOARD_HEIGHT);
@@ -26,8 +26,9 @@ public class Game extends JFrame implements Constraints {
 
     public static void main(String [] args) {
         EventQueue.invokeLater(() -> {
-            int pass_through = 1;
-            Game ex = new Game(pass_through);
+            int mushroomSeed = Integer.parseInt(args[0]);
+            System.out.print("Frequency of mushroom placement: "+mushroomSeed+"\n");
+            Game ex = new Game(mushroomSeed);
             ex.setVisible(true);
         });
     }

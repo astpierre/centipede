@@ -15,6 +15,17 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import java.io.*;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
+import org.w3c.dom.Element;
+import java.io.File;
+
 
 public class Board extends JPanel implements Runnable, Constraints {
     private Dimension d;
@@ -32,9 +43,12 @@ public class Board extends JPanel implements Runnable, Constraints {
     private String updateString = "";
     public boolean spaceEntered = false;
     public int numKills = 0;
+    private int mushroomSeed = 0;
+    private boolean enterEntered = true;
     File shotSoundFile = new File("sounds/shotSound.wav");
 
-    public Board(int m_c){
+    public Board(int mushroomSeed) {
+        this.mushroomSeed = mushroomSeed;
         TAdapter t_a = new TAdapter();
         SpaceToContinue s_to_c = new SpaceToContinue();
         addMouseListener(t_a);
@@ -72,7 +86,25 @@ public class Board extends JPanel implements Runnable, Constraints {
 
     public void restart() {
         if(player.lives < 0) {
-            updateString = "GAME OVER :(";
+            enterEntered = false;
+            updateString = "GAME OVER :( (to play again, hit ENTER!)";
+            player.restore();
+            numKills = 0;
+
+            spider.restore();
+
+            for(Shot shot: shots) {
+                shot.setVisible(false);
+            }
+            for(Centipede centipede: centipedes) {
+                centipede.restore();
+            }
+            for(Mushroom mushroom: mushrooms) {
+                if(mushroom.restore() > 0) game_score += 10;
+            }
+            game_score = 0;
+
+
         } else {
             player.setX(player.START_X);
             player.setY(player.START_Y);
@@ -88,7 +120,8 @@ public class Board extends JPanel implements Runnable, Constraints {
                 centipede.restore();
             }
             for(Mushroom mushroom: mushrooms) {
-                mushroom.restore();
+
+                if(mushroom.restore() > 0) game_score += 10;
             }
             updateString = "You died, HIT SPACEBAR TO CONTINUE";
         }
@@ -126,7 +159,7 @@ public class Board extends JPanel implements Runnable, Constraints {
         int mushroomEndY = GROUND-PLAYER_HEIGHT-5;
         int mushroomMinX = 1;
         int mushroomMaxX = (BOARD_WIDTH-MUSHROOM_WIDTH)/MUSHROOM_WIDTH;
-        int numberMushroomsPerRow = 3; /* TODO: fix to be user provided */
+        int numberMushroomsPerRow = this.mushroomSeed;
 
         for(int i=mushroomStartY; i<mushroomEndY; i+=3*CENTIPEDE_HEIGHT) {
             for(int j=0; j<numberMushroomsPerRow; j++) {
@@ -243,10 +276,12 @@ public class Board extends JPanel implements Runnable, Constraints {
 
     public void animationCycle() {
         if(ingame) {
-            if(spaceEntered) {
+            if(spaceEntered && enterEntered) {
                 if(updateString == "YOU DIED, HIT SPACEBAR TO CONTINUE") {
                     updateString = "";
                 } else if(updateString == "HIT SPACEBAR TO PLAY") {
+                    updateString = "";
+                } else if(updateString == "GAME OVER :( (to play again, hit ENTER!)") {
                     updateString = "";
                 }
                 player.update();
@@ -355,6 +390,10 @@ public class Board extends JPanel implements Runnable, Constraints {
                 player.loseLife();
                 spaceEntered = false;
                 restart();
+            } else if(collision(s_x, s_y, p_x, p_y, PLAYER_WIDTH, PLAYER_HEIGHT)) {
+                player.loseLife();
+                spaceEntered = false;
+                restart();
             }
         }
     }
@@ -454,7 +493,7 @@ public class Board extends JPanel implements Runnable, Constraints {
             repaint();
             animationCycle();
             timeDiff = System.currentTimeMillis() - beforeTime;
-            sleep = DELAY - timeDiff;
+            sleep = 20 - timeDiff;
             if (sleep < 0) {
                 sleep = 2;
             }
@@ -471,14 +510,14 @@ public class Board extends JPanel implements Runnable, Constraints {
         @Override
         public void keyTyped(KeyEvent e) {  }
         @Override
-        public void keyReleased(KeyEvent e) {
-            //spaceEntered = false;
-        }
+        public void keyReleased(KeyEvent e) {  }
         @Override
         public void keyPressed(KeyEvent e) {
             if ( e.getKeyCode() == KeyEvent.VK_SPACE ) {
                 spaceEntered = true;
-                //ingame = true;
+            } else if( e.getKeyCode() == KeyEvent.VK_ENTER ) {
+                enterEntered = true;
+                spaceEntered = true;
             }
         }
     }
