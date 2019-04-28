@@ -5,4 +5,4 @@
 ``` $ ant ```
 
 ## playing  
-``` $ ./centipede_play.jar ```
+``` $ java -jar centipede_play.jar <int-determining-mushroom-frequency>```
